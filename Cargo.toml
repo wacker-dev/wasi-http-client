@@ -1,0 +1,16 @@
+[package]
+name = "wasi-http-client"
+description = "HTTP client library for WASI"
+readme = "README.md"
+version = "0.1.0"
+edition = "2021"
+authors = ["Xinzhao Xu"]
+categories = ["wasm"]
+keywords = ["webassembly", "wasm", "wasi"]
+repository = "https://github.com/wacker-dev/wasi-http-client"
+license = "Apache-2.0"
+
+[dependencies]
+anyhow = "1.0.83"
+wasi = "0.13.0"
+url = "2.5.0"
