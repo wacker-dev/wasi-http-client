@@ -25,3 +25,4 @@ mod response;
 pub use self::client::Client;
 pub use self::request::RequestBuilder;
 pub use self::response::Response;
+pub use wasi::http::types::Method;
