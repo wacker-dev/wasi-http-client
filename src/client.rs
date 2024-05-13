@@ -1,5 +1,4 @@
-use crate::RequestBuilder;
-use wasi::http::types::Method;
+use crate::{Method, RequestBuilder};
 
 #[derive(Default)]
 pub struct Client {}
