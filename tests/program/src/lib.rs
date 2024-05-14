@@ -2,12 +2,20 @@
 mod bindings;
 
 use bindings::exports::wasi::cli::run::Guest;
+use serde::Deserialize;
 use std::time::Duration;
 use wasi_http_client::Client;
 
 struct Component;
 
 bindings::export!(Component with_types_in bindings);
+
+#[derive(Debug, Deserialize)]
+#[allow(dead_code)]
+struct Data {
+    origin: String,
+    url: String,
+}
 
 impl Guest for Component {
     fn run() -> Result<(), ()> {
@@ -20,6 +28,15 @@ impl Guest for Component {
             "GET https://httpbin.org/get, status code: {}, body:\n{}",
             resp.status(),
             String::from_utf8_lossy(resp.body())
+        );
+
+        // get with json response
+        let resp = Client::new().get("https://httpbin.org/get").send().unwrap();
+        let json_data = resp.json::<Data>().unwrap();
+        println!(
+            "GET https://httpbin.org/get, status code: {}, body:\n{:?}\n",
+            resp.status(),
+            json_data,
         );
 
         // post with json data

@@ -10,7 +10,16 @@ keywords = ["webassembly", "wasm", "wasi"]
 repository = "https://github.com/wacker-dev/wasi-http-client"
 license = "Apache-2.0"
 
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
 [dependencies]
 anyhow = "1.0.83"
 wasi = "0.13.0"
 url = "2.5.0"
+serde = { version = "1.0.201", optional = true }
+serde_json = { version = "1.0.117", optional = true }
+
+[features]
+json = ["dep:serde", "dep:serde_json"]

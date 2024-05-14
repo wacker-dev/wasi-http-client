@@ -21,6 +21,7 @@ package = "component:wasi-http-client-test-program"
 "wasi:random" = { path = "wit/deps/random" }
 
 [dependencies]
-wasi-http-client = { path = "../../../wasi-http-client" }
+wasi-http-client = { path = "../../../wasi-http-client", features = ["json"] }
 
 wit-bindgen-rt = { version = "0.24.0", features = ["bitflags"] }
+serde = { version = "1.0.201", features = ["derive"] }
