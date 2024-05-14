@@ -81,4 +81,4 @@ POST https://httpbin.org/post, status code: 200, body:
 ```
 
 There are specific steps for compilation in the [README](https://github.com/wacker-dev/wasi-examples/blob/main/http-client/README.md),
-and the main logic of the sample program is located at [lib.rs](https://github.com/wacker-dev/wasi-examples/blob/main/http-client/src/lib.rs#L14-L19).
+and the main logic of the sample program is located at [lib.rs](https://github.com/wacker-dev/wasi-examples/blob/main/http-client/src/lib.rs).
