@@ -6,26 +6,76 @@ After compilation, you can use [wasmtime](https://github.com/bytecodealliance/wa
 ```
 $ wasmtime -S http target/wasm32-wasi/debug/http_client.wasm
 
-status code: 200
-content-type: application/json
-content-length: 297
-access-control-allow-credentials: true
-server: gunicorn/19.9.0
-date: Sat, 11 May 2024 09:46:38 GMT
-access-control-allow-origin: *
-body:
+GET https://httpbin.org/get, status code: 200, body:
+{
+  "args": {
+    "a": "b"
+  },
+  "headers": {
+    "Host": "httpbin.org",
+    "X-Amzn-Trace-Id": "Root=1-6642db93-63a3489711d4d5247435ace8"
+  },
+  "origin": "...",
+  "url": "https://httpbin.org/get?a=b"
+}
+
+POST https://httpbin.org/post, status code: 200, body:
 {
   "args": {},
-  "data": "hello",
+  "data": "{\"data\": \"hello\"}",
   "files": {},
   "form": {},
   "headers": {
-    "Content-Length": "5",
+    "Content-Length": "17",
+    "Content-Type": "application/json",
     "Host": "httpbin.org",
-    "X-Amzn-Trace-Id": "Root=1-663f3e7e-6e3f84f87a20aef56c58a344"
+    "X-Amzn-Trace-Id": "Root=1-6642db96-4cc2ff4638eab42f4bd8d27f"
+  },
+  "json": {
+    "data": "hello"
+  },
+  "origin": "...",
+  "url": "https://httpbin.org/post"
+}
+
+POST https://httpbin.org/post, status code: 200, body:
+{
+  "args": {},
+  "data": "",
+  "files": {},
+  "form": {
+    "a": "b",
+    "c": ""
+  },
+  "headers": {
+    "Content-Length": "6",
+    "Content-Type": "application/x-www-form-urlencoded",
+    "Host": "httpbin.org",
+    "X-Amzn-Trace-Id": "Root=1-6642db98-02c2f6a008c804fe46145f9c"
   },
   "json": null,
-  "origin": "……",
+  "origin": "...",
+  "url": "https://httpbin.org/post"
+}
+
+POST https://httpbin.org/post, status code: 200, body:
+{
+  "args": {},
+  "data": "",
+  "files": {
+    "field2": "hello"
+  },
+  "form": {
+    "field1": "value1"
+  },
+  "headers": {
+    "Content-Length": "156",
+    "Content-Type": "multipart/form-data; boundary=boundary",
+    "Host": "httpbin.org",
+    "X-Amzn-Trace-Id": "Root=1-6642db99-2f1a72b618ad642e2ceee3a2"
+  },
+  "json": null,
+  "origin": "...",
   "url": "https://httpbin.org/post"
 }
 ```
