@@ -1,0 +1,26 @@
+[package]
+name = "wasi-http-client-test-program"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[lib]
+crate-type = ["cdylib"]
+
+[package.metadata.component]
+package = "component:wasi-http-client-test-program"
+
+[package.metadata.component.dependencies]
+
+[package.metadata.component.target.dependencies]
+"wasi:cli" = { path = "wit/deps/cli" }
+"wasi:io" = { path = "wit/deps/io" }
+"wasi:clocks" = { path = "wit/deps/clocks" }
+"wasi:filesystem" = { path = "wit/deps/filesystem" }
+"wasi:sockets" = { path = "wit/deps/sockets" }
+"wasi:random" = { path = "wit/deps/random" }
+
+[dependencies]
+wasi-http-client = { path = "../../../wasi-http-client" }
+
+wit-bindgen-rt = { version = "0.24.0", features = ["bitflags"] }
