@@ -1,4 +1,6 @@
 use anyhow::{anyhow, Result};
+#[cfg(feature = "json")]
+use serde::de::DeserializeOwned;
 use std::collections::HashMap;
 use wasi::http::types::{IncomingResponse, StatusCode};
 use wasi::io::streams::StreamError;
@@ -56,5 +58,16 @@ impl Response {
 
     pub fn body(&self) -> &Vec<u8> {
         &self.body
+    }
+
+    /// Deserialize the response body as JSON.
+    ///
+    /// # Optional
+    ///
+    /// This requires the `json` feature enabled.
+    #[cfg(feature = "json")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "json")))]
+    pub fn json<T: DeserializeOwned>(&self) -> Result<T> {
+        Ok(serde_json::from_slice(&self.body)?)
     }
 }
