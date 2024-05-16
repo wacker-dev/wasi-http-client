@@ -2,13 +2,15 @@ use anyhow::{anyhow, Result};
 #[cfg(feature = "json")]
 use serde::de::DeserializeOwned;
 use std::collections::HashMap;
-use wasi::http::types::{IncomingResponse, StatusCode};
-use wasi::io::streams::StreamError;
+use wasi::http::types::{IncomingBody, IncomingResponse, StatusCode};
+use wasi::io::streams::{InputStream, StreamError};
 
 pub struct Response {
     status: StatusCode,
     headers: HashMap<String, String>,
-    body: Vec<u8>,
+    // input-stream resource is a child: it must be dropped before the parent incoming-body is dropped
+    input_stream: InputStream,
+    _incoming_body: IncomingBody,
 }
 
 impl Response {
@@ -22,42 +24,48 @@ impl Response {
         }
         drop(headers_handle);
 
-        let incoming_body = incoming_response
-            .consume()
-            .map_err(|()| anyhow!("incoming response has no body stream"))?;
+        // The consume() method can only be called once
+        let incoming_body = incoming_response.consume().unwrap();
         drop(incoming_response);
 
+        // The stream() method can only be called once
         let input_stream = incoming_body.stream().unwrap();
-        let mut body = vec![];
-        loop {
-            let mut body_chunk = match input_stream.read(1024 * 1024) {
-                Ok(c) => c,
-                Err(StreamError::Closed) => break,
-                Err(e) => Err(anyhow!("input_stream read failed: {e:?}"))?,
-            };
-
-            if !body_chunk.is_empty() {
-                body.append(&mut body_chunk);
-            }
-        }
-
         Ok(Self {
             status,
             headers,
-            body,
+            input_stream,
+            _incoming_body: incoming_body,
         })
     }
 
-    pub fn status(&self) -> &StatusCode {
-        &self.status
+    pub fn status(&self) -> StatusCode {
+        self.status
     }
 
     pub fn headers(&self) -> &HashMap<String, String> {
         &self.headers
     }
 
-    pub fn body(&self) -> &Vec<u8> {
-        &self.body
+    /// Get a chunk of the response body.
+    ///
+    /// It will block until at least one byte can be read or the stream is closed.
+    pub fn chunk(&self, len: u64) -> Result<Option<Vec<u8>>> {
+        match self.input_stream.blocking_read(len) {
+            Ok(c) => Ok(Some(c)),
+            Err(StreamError::Closed) => Ok(None),
+            Err(e) => Err(anyhow!("input_stream read failed: {e:?}"))?,
+        }
+    }
+
+    /// Get the full response body.
+    ///
+    /// It will block until the stream is closed.
+    pub fn body(self) -> Result<Vec<u8>> {
+        let mut body = Vec::new();
+        while let Some(mut chunk) = self.chunk(1024 * 1024)? {
+            body.append(&mut chunk);
+        }
+        Ok(body)
     }
 
     /// Deserialize the response body as JSON.
@@ -67,7 +75,7 @@ impl Response {
     /// This requires the `json` feature enabled.
     #[cfg(feature = "json")]
     #[cfg_attr(docsrs, doc(cfg(feature = "json")))]
-    pub fn json<T: DeserializeOwned>(&self) -> Result<T> {
-        Ok(serde_json::from_slice(&self.body)?)
+    pub fn json<T: DeserializeOwned>(self) -> Result<T> {
+        Ok(serde_json::from_slice(self.body()?.as_ref())?)
     }
 }

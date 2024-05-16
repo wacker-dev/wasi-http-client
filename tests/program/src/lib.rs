@@ -27,17 +27,30 @@ impl Guest for Component {
         println!(
             "GET https://httpbin.org/get, status code: {}, body:\n{}",
             resp.status(),
-            String::from_utf8_lossy(resp.body())
+            String::from_utf8(resp.body().unwrap()).unwrap()
         );
 
         // get with json response
         let resp = Client::new().get("https://httpbin.org/get").send().unwrap();
+        let status = resp.status();
         let json_data = resp.json::<Data>().unwrap();
         println!(
             "GET https://httpbin.org/get, status code: {}, body:\n{:?}\n",
-            resp.status(),
-            json_data,
+            status, json_data,
         );
+
+        let resp = Client::new()
+            .get("https://httpbin.org/range/20?duration=5&chunk_size=10")
+            .send()
+            .unwrap();
+        println!(
+            "GET https://httpbin.org/range, status code: {}, body:",
+            resp.status()
+        );
+        while let Some(chunk) = resp.chunk(1024).unwrap() {
+            println!("{}", String::from_utf8(chunk).unwrap());
+        }
+        println!();
 
         // post with json data
         let resp = Client::new()
@@ -51,7 +64,7 @@ impl Guest for Component {
         println!(
             "POST https://httpbin.org/post, status code: {}, body:\n{}",
             resp.status(),
-            String::from_utf8_lossy(resp.body())
+            String::from_utf8(resp.body().unwrap()).unwrap()
         );
 
         // post with form data
@@ -66,7 +79,7 @@ impl Guest for Component {
         println!(
             "POST https://httpbin.org/post, status code: {}, body:\n{}",
             resp.status(),
-            String::from_utf8_lossy(resp.body())
+            String::from_utf8(resp.body().unwrap()).unwrap()
         );
 
         // post with file form data
@@ -93,7 +106,7 @@ hello
         println!(
             "POST https://httpbin.org/post, status code: {}, body:\n{}",
             resp.status(),
-            String::from_utf8_lossy(resp.body())
+            String::from_utf8(resp.body().unwrap()).unwrap()
         );
         Ok(())
     }
