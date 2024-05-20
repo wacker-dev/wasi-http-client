@@ -1,3 +1,5 @@
+#![cfg_attr(docsrs, feature(doc_cfg))]
+
 //! # wasi-http-client
 //!
 //! `wasi_http_client` is an HTTP client library for [WASI Preview 2](https://github.com/WebAssembly/WASI/tree/main/preview2),
