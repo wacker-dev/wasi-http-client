@@ -75,6 +75,23 @@ impl Response {
     /// # Optional
     ///
     /// This requires the `json` feature enabled.
+    ///
+    /// ```
+    /// # use anyhow::Result;
+    /// # use serde::Deserialize;
+    /// # use wasi_http_client::Client;
+    /// # fn run() -> Result<()> {
+    /// #[derive(Deserialize)]
+    /// struct Data {
+    ///     origin: String,
+    ///     url: String,
+    /// }
+    ///
+    /// let resp = Client::new().get("https://httpbin.org/get").send()?;
+    /// let json_data = resp.json::<Data>()?;
+    /// # Ok(())
+    /// # }
+    /// ```
     #[cfg(feature = "json")]
     #[cfg_attr(docsrs, doc(cfg(feature = "json")))]
     pub fn json<T: DeserializeOwned>(self) -> Result<T> {
