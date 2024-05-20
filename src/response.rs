@@ -2,11 +2,11 @@ use anyhow::{anyhow, Result};
 #[cfg(feature = "json")]
 use serde::de::DeserializeOwned;
 use std::collections::HashMap;
-use wasi::http::types::{IncomingBody, IncomingResponse, StatusCode};
+use wasi::http::types::{IncomingBody, IncomingResponse};
 use wasi::io::streams::{InputStream, StreamError};
 
 pub struct Response {
-    status: StatusCode,
+    status: u16,
     headers: HashMap<String, String>,
     // input-stream resource is a child: it must be dropped before the parent incoming-body is dropped
     input_stream: InputStream,
@@ -14,7 +14,7 @@ pub struct Response {
 }
 
 impl Response {
-    pub fn new(incoming_response: IncomingResponse) -> Result<Self> {
+    pub(crate) fn new(incoming_response: IncomingResponse) -> Result<Self> {
         let status = incoming_response.status();
 
         let mut headers: HashMap<String, String> = HashMap::new();
@@ -38,10 +38,12 @@ impl Response {
         })
     }
 
-    pub fn status(&self) -> StatusCode {
+    /// Get the status code of the response.
+    pub fn status(&self) -> u16 {
         self.status
     }
 
+    /// Get the headers of the response.
     pub fn headers(&self) -> &HashMap<String, String> {
         &self.headers
     }

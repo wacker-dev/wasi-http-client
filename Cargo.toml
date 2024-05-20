@@ -18,8 +18,9 @@ rustdoc-args = ["--cfg", "docsrs"]
 anyhow = "1.0.83"
 wasi = "0.13.0"
 url = "2.5.0"
-serde = { version = "1.0.201", optional = true }
+serde = "1.0.201"
 serde_json = { version = "1.0.117", optional = true }
+serde_urlencoded = "0.7.1"
 
 [features]
-json = ["dep:serde", "dep:serde_json"]
+json = ["dep:serde_json"]

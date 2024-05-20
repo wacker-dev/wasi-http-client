@@ -6,10 +6,8 @@ making it easier to send http(s) requests in WASI components.
 ```rust
 let resp = Client::new()
     .post("https://httpbin.org/post")
-    .body("hello".as_bytes())
     .connect_timeout(Duration::from_secs(5))
-    .send()
-    .unwrap();
+    .send()?;
 
 println!("status code: {}", resp.status());
 ```
