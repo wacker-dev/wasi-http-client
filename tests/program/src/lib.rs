@@ -3,6 +3,7 @@ mod bindings;
 
 use bindings::exports::wasi::cli::run::Guest;
 use serde::Deserialize;
+use std::collections::HashMap;
 use std::time::Duration;
 use wasi_http_client::Client;
 
@@ -22,6 +23,7 @@ impl Guest for Component {
         // get with query
         let resp = Client::new()
             .get("https://httpbin.org/get?a=b")
+            .headers([("Content-Type", "application/json"), ("Accept", "*/*")])
             .send()
             .unwrap();
         println!(
@@ -39,8 +41,10 @@ impl Guest for Component {
             status, json_data,
         );
 
+        // play with the response chunk
         let resp = Client::new()
-            .get("https://httpbin.org/range/20?duration=5&chunk_size=10")
+            .get("https://httpbin.org/range/20")
+            .query(&[("duration", "5"), ("chunk_size", "10")])
             .send()
             .unwrap();
         println!(
@@ -55,9 +59,7 @@ impl Guest for Component {
         // post with json data
         let resp = Client::new()
             .post("https://httpbin.org/post")
-            .header("Content-Type", "application/json")
-            .unwrap()
-            .body("{\"data\": \"hello\"}".as_bytes())
+            .json(&HashMap::from([("data", "hello")]))
             .connect_timeout(Duration::from_secs(5))
             .send()
             .unwrap();
@@ -70,9 +72,7 @@ impl Guest for Component {
         // post with form data
         let resp = Client::new()
             .post("https://httpbin.org/post")
-            .header("Content-Type", "application/x-www-form-urlencoded")
-            .unwrap()
-            .body("a=b&c=".as_bytes())
+            .form(&[("a", "b"), ("c", "")])
             .connect_timeout(Duration::from_secs(5))
             .send()
             .unwrap();
@@ -86,7 +86,6 @@ impl Guest for Component {
         let resp = Client::new()
             .post("https://httpbin.org/post")
             .header("Content-Type", "multipart/form-data; boundary=boundary")
-            .unwrap()
             .body(
                 "--boundary
 Content-Disposition: form-data; name=field1
