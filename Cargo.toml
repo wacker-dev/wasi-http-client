@@ -24,3 +24,10 @@ serde_urlencoded = "0.7.1"
 
 [features]
 json = ["dep:serde_json"]
+
+[dev-dependencies]
+test-programs-artifacts = { path = "crates/test-programs/artifacts" }
+
+[workspace]
+resolver = "2"
+members = ["crates/test-programs"]
