@@ -5,5 +5,5 @@ edition = "2021"
 publish = false
 
 [dependencies]
-wasi-http-client = { path = "../../../wasi-http-client", features = ["json"] }
+wasi-http-client = { path = "../../", features = ["json"] }
 serde = { version = "1.0.201", features = ["derive"] }
