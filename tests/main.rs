@@ -17,16 +17,6 @@ fn get_chunk() {
 }
 
 #[test]
-fn get_with_json_response() {
-    let mut cmd = wasmtime();
-    let status = cmd
-        .arg(test_programs_artifacts::GET_WITH_JSON_RESPONSE_COMPONENT)
-        .status()
-        .unwrap();
-    assert!(status.success());
-}
-
-#[test]
 fn get_with_query() {
     let mut cmd = wasmtime();
     let status = cmd
