@@ -1,5 +1,13 @@
+use serde::Deserialize;
+use std::collections::HashMap;
 use std::time::Duration;
 use wasi_http_client::Client;
+
+#[derive(Deserialize)]
+struct Data {
+    form: HashMap<String, String>,
+    files: HashMap<String, String>,
+}
 
 fn main() {
     let resp = Client::new()
@@ -22,4 +30,8 @@ hello
         .send()
         .unwrap();
     assert_eq!(resp.status(), 200);
+
+    let data = resp.json::<Data>().unwrap();
+    assert_eq!(data.form.get("field1").unwrap(), "value1");
+    assert_eq!(data.files.get("field2").unwrap(), "hello");
 }
