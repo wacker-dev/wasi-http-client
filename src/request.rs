@@ -1,14 +1,12 @@
 use crate::Response;
 use anyhow::{anyhow, Error, Result};
 use serde::Serialize;
+use std::collections::HashMap;
 use std::time::Duration;
 use url::Url;
 use wasi::http::{
     outgoing_handler,
-    types::{
-        FieldKey, FieldValue, Headers, Method, OutgoingBody, OutgoingRequest, RequestOptions,
-        Scheme,
-    },
+    types::{Headers, Method, OutgoingBody, OutgoingRequest, RequestOptions, Scheme},
 };
 
 pub struct RequestBuilder {
@@ -36,26 +34,14 @@ impl RequestBuilder {
     /// # Ok(())
     /// # }
     /// ```
-    pub fn header<K, V>(mut self, key: K, value: V) -> Self
-    where
-        K: Into<FieldKey>,
-        V: Into<FieldValue>,
-    {
-        let mut err = None;
+    pub fn header<S: Into<String>>(mut self, key: S, value: S) -> Self {
         if let Ok(ref mut req) = self.request {
-            if let Err(e) = req.headers.set(&key.into(), &[value.into()]) {
-                err = Some(e);
-            }
-        }
-        if let Some(e) = err {
-            self.request = Err(e.into());
+            req.headers.insert(key.into(), value.into());
         }
         self
     }
 
     /// Add a set of headers to the Request.
-    ///
-    /// Existing headers will be overwritten.
     ///
     /// ```
     /// # use anyhow::Result;
@@ -67,25 +53,14 @@ impl RequestBuilder {
     /// # Ok(())
     /// # }
     /// ```
-    pub fn headers<K, V, I>(mut self, headers: I) -> Self
+    pub fn headers<S, I>(mut self, headers: I) -> Self
     where
-        K: Into<FieldKey>,
-        V: Into<FieldValue>,
-        I: IntoIterator<Item = (K, V)>,
+        S: Into<String>,
+        I: IntoIterator<Item = (S, S)>,
     {
-        let mut err = None;
         if let Ok(ref mut req) = self.request {
-            let entries: Vec<(FieldKey, FieldValue)> = headers
-                .into_iter()
-                .map(|(k, v)| (k.into(), v.into()))
-                .collect();
-            match Headers::from_list(&entries) {
-                Ok(fields) => req.headers = fields,
-                Err(e) => err = Some(e),
-            }
-        }
-        if let Some(e) = err {
-            self.request = Err(e.into());
+            req.headers
+                .extend(headers.into_iter().map(|(k, v)| (k.into(), v.into())));
         }
         self
     }
@@ -158,12 +133,8 @@ impl RequestBuilder {
     pub fn json<T: Serialize + ?Sized>(mut self, json: &T) -> Self {
         let mut err = None;
         if let Ok(ref mut req) = self.request {
-            if let Err(e) = req
-                .headers
-                .set(&"Content-Type".to_string(), &["application/json".into()])
-            {
-                err = Some(e.into());
-            }
+            req.headers
+                .insert("Content-Type".into(), "application/json".into());
             match serde_json::to_vec(json) {
                 Ok(data) => req.body = Some(data),
                 Err(e) => err = Some(e.into()),
@@ -190,12 +161,10 @@ impl RequestBuilder {
     pub fn form<T: Serialize + ?Sized>(mut self, form: &T) -> Self {
         let mut err = None;
         if let Ok(ref mut req) = self.request {
-            if let Err(e) = req.headers.set(
-                &"Content-Type".to_string(),
-                &["application/x-www-form-urlencoded".into()],
-            ) {
-                err = Some(e.into());
-            }
+            req.headers.insert(
+                "Content-Type".into(),
+                "application/x-www-form-urlencoded".into(),
+            );
             match serde_urlencoded::to_string(form) {
                 Ok(data) => req.body = Some(data.into()),
                 Err(e) => err = Some(e.into()),
@@ -239,7 +208,7 @@ impl RequestBuilder {
 struct Request {
     method: Method,
     url: Url,
-    headers: Headers,
+    headers: HashMap<String, String>,
     body: Option<Vec<u8>>,
     connect_timeout: Option<u64>,
 }
@@ -249,14 +218,21 @@ impl Request {
         Self {
             method,
             url,
-            headers: Headers::new(),
+            headers: HashMap::new(),
             body: None,
             connect_timeout: None,
         }
     }
 
     fn send(self) -> Result<Response> {
-        let req = OutgoingRequest::new(self.headers);
+        let entries = self
+            .headers
+            .into_iter()
+            .map(|(k, v)| (k, v.into()))
+            .collect::<Vec<_>>();
+        let headers = Headers::from_list(&entries)?;
+
+        let req = OutgoingRequest::new(headers);
         req.set_method(&self.method)
             .map_err(|()| anyhow!("failed to set method"))?;
 
