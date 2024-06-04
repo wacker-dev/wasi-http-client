@@ -17,11 +17,12 @@ impl Response {
     pub(crate) fn new(incoming_response: IncomingResponse) -> Result<Self> {
         let status = incoming_response.status();
 
-        let mut headers: HashMap<String, String> = HashMap::new();
         let headers_handle = incoming_response.headers();
-        for (key, value) in headers_handle.entries() {
-            headers.insert(key, String::from_utf8(value)?);
-        }
+        let headers: HashMap<String, String> = headers_handle
+            .entries()
+            .into_iter()
+            .map(|(key, value)| (key, String::from_utf8_lossy(&value).to_string()))
+            .collect();
         drop(headers_handle);
 
         // The consume() method can only be called once
