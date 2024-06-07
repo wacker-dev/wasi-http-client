@@ -1,3 +1,7 @@
+# Deprecated
+
+`wasi-http-client` has been merged into [waki](https://github.com/wacker-dev/waki), please use [waki](https://github.com/wacker-dev/waki) instead.
+
 # wasi-http-client
 
 HTTP client library for [WASI Preview 2](https://github.com/WebAssembly/WASI/tree/main/preview2),
